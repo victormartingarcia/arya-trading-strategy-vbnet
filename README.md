@@ -15,7 +15,7 @@ Table of Contents
 Overview
 ----
 
-Arya is a trading algorithm written in C# using the [TradingMotion SDK] development tools (there is a [VB.net] port too).
+Arya is a trading algorithm written in VB.Net using the [TradingMotion SDK] development tools (there is a [C# port] too).
 
 ![OHLC example chart](markdown_files/OHLC.png)
 <sub>__Image footnote:__ Example of Arya OHLC financial chart showing some automatic trades</sub>
@@ -65,130 +65,139 @@ Arya Trading Strategy rules:
 
 Here is a simplified C# source code of Arya's _OnNewBar()_ function. The complete code is all contained in [AryaStrategy.cs] along with comments and definition of parameters.
 
-```csharp
-decimal buySignal = (decimal)this.GetInputParameter("Trend-following buy signal");
-decimal sellSignal = (decimal)this.GetInputParameter("Trend-following sell signal");
+```VB.net
+Dim buySignal As Decimal = Me.GetInputParameter("Trend-following buy signal")
+Dim sellSignal As Decimal = Me.GetInputParameter("Trend-following sell signal")
 
-decimal stopMargin = (int)this.GetInputParameter("Trailing Stop Loss ticks distance") * this.GetMainChart().Symbol.TickSize;
-decimal profitMargin = (int)this.GetInputParameter("Profit Target ticks distance") * this.GetMainChart().Symbol.TickSize;
+Dim stopMargin As Decimal = Me.GetInputParameter("Trailing Stop Loss ticks distance") * Me.GetMainChart().Symbol.TickSize
+Dim profitMargin As Decimal = Me.GetInputParameter("Profit Target ticks distance") * Me.GetMainChart().Symbol.TickSize
 
-bool longTradingEnabled = false;
-bool shortTradingEnabled = false;
+Dim longTradingEnabled As Boolean = False
+Dim shortTradingEnabled As Boolean = False
 
-// Day-of-week filter
-if (IsDayEnabledForTrading(this.Bars.Time[0].DayOfWeek))
-{
-    // Time-of-day filter
-    if (IsTimeEnabledForTrading(this.Bars.Time[0]))
-    {
-        // Volatility filter
-        if (CalculateVolatilityRange() > (decimal)this.GetInputParameter("Minimum Range Filter"))
-        {
-            // ADX minimum level and current trending filters
-            if (this.GetOpenPosition() == 0 && IsADXEnabledForLongEntry() && IsBullishUnderlyingTrend())
-            {
-                longTradingEnabled = true;
-            }
-            else if (this.GetOpenPosition() == 0 && IsADXEnabledForShortEntry() && IsBearishUnderlyingTrend())
-            {
-                shortTradingEnabled = true;
-            }
-        }
-    }
-}
+' Day-of-week filter
+If IsDayEnabledForTrading(Me.Bars.Time(0).DayOfWeek) Then
 
-if (longTradingEnabled && stochasticIndicator.GetD()[1] <= buySignal && stochasticIndicator.GetD()[0] > buySignal)
-{
-    // BUY SIGNAL: Stochastic %D crosses above "buy signal" level
-    MarketOrder buyOrder = new MarketOrder(OrderSide.Buy, 1, "Enter long position");
-    this.InsertOrder(buyOrder);
+    ' Time-of-day filter
+    If IsTimeEnabledForTrading(Me.Bars.Time(0)) Then
 
-    trailingStopOrder = new StopOrder(OrderSide.Sell, 1, this.Bars.Close[0] - stopMargin, "Catastrophic stop long exit");
-    this.InsertOrder(trailingStopOrder);
+        ' Volatility filter
+        If CalculateVolatilityRange() > Me.GetInputParameter("Minimum Range Filter") Then
 
-    profitOrder = new LimitOrder(OrderSide.Sell, 1, this.Bars.Close[0] + profitMargin, "Profit stop long exit");
-    this.InsertOrder(profitOrder);
+            ' ADX minimum level and current trending filters
+            If Me.GetOpenPosition() = 0 And IsADXEnabledForLongEntry() And IsBullishUnderlyingTrend() Then
 
-    // Linking Stop and Limit orders: when one is executed, the other is cancelled
-    trailingStopOrder.IsChildOf = profitOrder;
-    profitOrder.IsChildOf = trailingStopOrder;
+                longTradingEnabled = True
 
-    // Setting the initial acceleration for the trailing stop and the furthest (the most extreme) close price
-    acceleration = (decimal)this.GetInputParameter("Trailing Stop acceleration");
-    furthestClose = this.Bars.Close[0];
-}
-else if (shortTradingEnabled && stochasticIndicator.GetD()[1] >= sellSignal && stochasticIndicator.GetD()[0] < sellSignal)
-{
-    // SELL SIGNAL: Stochastic %D crosses below "sell signal" level
-    MarketOrder sellOrder = new MarketOrder(OrderSide.Sell, 1, "Enter short position");
-    this.InsertOrder(sellOrder);
+            ElseIf Me.GetOpenPosition() = 0 And IsADXEnabledForShortEntry() And IsBearishUnderlyingTrend() Then
 
-    trailingStopOrder = new StopOrder(OrderSide.Buy, 1, this.Bars.Close[0] + stopMargin, "Catastrophic stop short exit");
-    this.InsertOrder(trailingStopOrder);
+                shortTradingEnabled = True
 
-    profitOrder = new LimitOrder(OrderSide.Buy, 1, this.Bars.Close[0] - profitMargin, "Profit stop short exit");
-    this.InsertOrder(profitOrder);
+            End If
 
-    // Linking Stop and Limit orders: when one is executed, the other is cancelled
-    trailingStopOrder.IsChildOf = profitOrder;
-    profitOrder.IsChildOf = trailingStopOrder;
+        End If
 
-    // Setting the initial acceleration for the trailing stop and the furthest (the most extreme) close price
-    acceleration = (decimal)this.GetInputParameter("Trailing Stop acceleration");
-    furthestClose = this.Bars.Close[0];
-}
-else if (this.GetOpenPosition() == 1 && this.Bars.Close[0] > furthestClose)
-{
-    // We're long and the price has moved in our favour
-    furthestClose = this.Bars.Close[0];
+    End If
 
-    // Increasing acceleration
-    acceleration = acceleration * (furthestClose - trailingStopOrder.Price);
+End If
 
-    // Checking if trailing the stop order would exceed the current market price
-    if (trailingStopOrder.Price + acceleration < this.Bars.Close[0])
-    {
-        // Setting the new price for the trailing stop
-        trailingStopOrder.Price = trailingStopOrder.Price + acceleration;
-        trailingStopOrder.Label = "Trailing stop long exit";
-        this.ModifyOrder(trailingStopOrder);
-    }
-    else
-    {
-        // Cancelling the order and closing the position
-        this.CancelOrder(trailingStopOrder);
-        this.CancelOrder(profitOrder);
+If longTradingEnabled And stochasticIndicator.GetD()(1) <= buySignal And stochasticIndicator.GetD()(0) > buySignal Then
 
-        MarketOrder exitLongOrder = new MarketOrder(OrderSide.Sell, 1, "Exit long position");
-        this.InsertOrder(exitLongOrder);
-    }
-}
-else if (this.GetOpenPosition() == -1 && this.Bars.Close[0] < furthestClose)
-{
-    // We're short and the price has moved in our favour
-    furthestClose = this.Bars.Close[0];
+    ' BUY SIGNAL: Stochastic %D crosses above "buy signal" level
+    Dim buyOrder As MarketOrder = New MarketOrder(OrderSide.Buy, 1, "Enter long position")
+    Me.InsertOrder(buyOrder)
 
-    // Increasing acceleration
-    acceleration = acceleration * Math.Abs(trailingStopOrder.Price - furthestClose);
+    trailingStopOrder = New StopOrder(OrderSide.Sell, 1, Me.Bars.Close(0) - stopMargin, "Catastrophic stop long exit")
+    Me.InsertOrder(trailingStopOrder)
 
-    // Checking if trailing the stop order would exceed the current market price
-    if (trailingStopOrder.Price - acceleration > this.Bars.Close[0])
-    {
-        // Setting the new price for the trailing stop
-        trailingStopOrder.Price = trailingStopOrder.Price - acceleration;
-        trailingStopOrder.Label = "Trailing stop short exit";
-        this.ModifyOrder(trailingStopOrder);
-    }
-    else
-    {
-        // Cancelling the order and closing the position
-        this.CancelOrder(trailingStopOrder);
-        this.CancelOrder(profitOrder);
+    profitOrder = New LimitOrder(OrderSide.Sell, 1, Me.Bars.Close(0) + profitMargin, "Profit stop long exit")
+    Me.InsertOrder(profitOrder)
 
-        MarketOrder exitShortOrder = new MarketOrder(OrderSide.Buy, 1, "Exit short position");
-        this.InsertOrder(exitShortOrder);
-    }
-}
+    ' Linking Stop and Limit orders: when one is executed, the other is cancelled
+    trailingStopOrder.IsChildOf = profitOrder
+    profitOrder.IsChildOf = trailingStopOrder
+
+    ' Setting the initial acceleration for the trailing stop and the furthest (the most extreme) close price
+    acceleration = Me.GetInputParameter("Trailing Stop acceleration")
+    furthestClose = Me.Bars.Close(0)
+
+ElseIf shortTradingEnabled And stochasticIndicator.GetD()(1) >= sellSignal And stochasticIndicator.GetD()(0) < sellSignal Then
+
+    ' SELL SIGNAL: Stochastic %D crosses below "sell signal" level
+    Dim sellOrder As MarketOrder = New MarketOrder(OrderSide.Sell, 1, "Enter short position")
+    Me.InsertOrder(sellOrder)
+
+    trailingStopOrder = New StopOrder(OrderSide.Buy, 1, Me.Bars.Close(0) + stopMargin, "Catastrophic stop short exit")
+    Me.InsertOrder(trailingStopOrder)
+
+    profitOrder = New LimitOrder(OrderSide.Buy, 1, Me.Bars.Close(0) - profitMargin, "Profit stop short exit")
+    Me.InsertOrder(profitOrder)
+
+    ' Linking Stop and Limit orders: when one is executed, the other is cancelled
+    trailingStopOrder.IsChildOf = profitOrder
+    profitOrder.IsChildOf = trailingStopOrder
+
+    ' Setting the initial acceleration for the trailing stop and the furthest (the most extreme) close price
+    acceleration = Me.GetInputParameter("Trailing Stop acceleration")
+    furthestClose = Me.Bars.Close(0)
+
+ElseIf Me.GetOpenPosition() = 1 And Me.Bars.Close(0) > furthestClose Then
+
+    ' We're long and the price has moved in our favour
+
+    furthestClose = Me.Bars.Close(0)
+
+    ' Increasing acceleration
+    acceleration = acceleration * (furthestClose - trailingStopOrder.Price)
+
+    ' Checking if trailing the stop order would exceed the current market price
+    If trailingStopOrder.Price + acceleration < Me.Bars.Close(0) Then
+
+        ' Setting the new price for the trailing stop
+        trailingStopOrder.Price = trailingStopOrder.Price + acceleration
+        trailingStopOrder.Label = "Trailing stop long exit"
+        Me.ModifyOrder(trailingStopOrder)
+
+    Else
+
+        ' Cancelling the order and closing the position
+        Me.CancelOrder(trailingStopOrder)
+        Me.CancelOrder(profitOrder)
+
+        Dim exitLongOrder As MarketOrder = New MarketOrder(OrderSide.Sell, 1, "Exit long position")
+        Me.InsertOrder(exitLongOrder)
+
+    End If
+
+ElseIf Me.GetOpenPosition() = -1 And Me.Bars.Close(0) < furthestClose Then
+
+    ' We're short and the price has moved in our favour
+
+    furthestClose = Me.Bars.Close(0)
+
+    ' Increasing acceleration
+    acceleration = acceleration * Math.Abs(trailingStopOrder.Price - furthestClose)
+
+    ' Checking if trailing the stop order would exceed the current market price
+    If trailingStopOrder.Price - acceleration > Me.Bars.Close(0) Then
+
+        ' Setting the new price for the trailing stop
+        trailingStopOrder.Price = trailingStopOrder.Price - acceleration
+        trailingStopOrder.Label = "Trailing stop short exit"
+        Me.ModifyOrder(trailingStopOrder)
+
+    Else
+
+        ' Cancelling the order and closing the position
+        Me.CancelOrder(trailingStopOrder)
+        Me.CancelOrder(profitOrder)
+
+        Dim exitShortOrder As MarketOrder = New MarketOrder(OrderSide.Buy, 1, "Exit short position")
+        Me.InsertOrder(exitShortOrder)
+
+    End If
+
+End If
 ```
 
 Download
@@ -239,7 +248,7 @@ Disclaimer
 
 I am R&D engineer at [TradingMotion LLC], and head of [TradingMotion SDK] platform. Beware, the info here can be a little biased ;)
 
-  [VB.net port]: https://github.com/victormartingarcia/Arya-trading-strategy-vbnet
+  [C# port]: https://github.com/victormartingarcia/Arya-trading-strategy-csharp
   [TradingMotion SDK]: http://sdk.tradingmotion.com
   [AryaStrategy.cs]: AryaStrategy/AryaStrategy.cs
   [iSystems platform]: https://www.isystems.com
