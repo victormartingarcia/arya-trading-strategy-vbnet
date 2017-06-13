@@ -66,11 +66,11 @@ Arya Trading Strategy rules:
 Here is a simplified C# source code of Arya's _OnNewBar()_ function. The complete code is all contained in [AryaStrategy.cs] along with comments and definition of parameters.
 
 ```VB.net
-Dim buySignal As Decimal = Me.GetInputParameter("Trend-following buy signal")
-Dim sellSignal As Decimal = Me.GetInputParameter("Trend-following sell signal")
+Dim buySignal As Double = Me.GetInputParameter("Trend-following buy signal")
+Dim sellSignal As Double = Me.GetInputParameter("Trend-following sell signal")
 
-Dim stopMargin As Decimal = Me.GetInputParameter("Trailing Stop Loss ticks distance") * Me.GetMainChart().Symbol.TickSize
-Dim profitMargin As Decimal = Me.GetInputParameter("Profit Target ticks distance") * Me.GetMainChart().Symbol.TickSize
+Dim stopMargin As Double = Me.GetInputParameter("Trailing Stop Loss ticks distance") * Me.GetMainChart().Symbol.TickSize
+Dim profitMargin As Double = Me.GetInputParameter("Profit Target ticks distance") * Me.GetMainChart().Symbol.TickSize
 
 Dim longTradingEnabled As Boolean = False
 Dim shortTradingEnabled As Boolean = False

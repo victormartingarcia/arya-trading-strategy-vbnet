@@ -1,10 +1,10 @@
-﻿Imports System
+Imports System
 Imports System.Configuration
-Imports TradingMotion.SDK.Algorithms.Debug
-Imports TradingMotion.SDK.Markets
-Imports TradingMotion.SDK.Markets.Charts
-Imports TradingMotion.SDK.Markets.Symbols
-Imports TradingMotion.SDK.WebServices
+Imports TradingMotion.SDKv2.Algorithms.Debug
+Imports TradingMotion.SDKv2.Markets
+Imports TradingMotion.SDKv2.Markets.Charts
+Imports TradingMotion.SDKv2.Markets.Symbols
+Imports TradingMotion.SDKv2.WebServices
 
 Namespace AryaStrategy
 

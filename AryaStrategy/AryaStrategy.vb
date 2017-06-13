@@ -1,11 +1,11 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
-Imports TradingMotion.SDK.Algorithms
-Imports TradingMotion.SDK.Algorithms.InputParameters
-Imports TradingMotion.SDK.Markets.Charts
-Imports TradingMotion.SDK.Markets.Orders
-Imports TradingMotion.SDK.Markets.Indicators.Momentum
-Imports TradingMotion.SDK.Markets.Indicators.OverlapStudies
+Imports TradingMotion.SDKv2.Algorithms
+Imports TradingMotion.SDKv2.Algorithms.InputParameters
+Imports TradingMotion.SDKv2.Markets.Charts
+Imports TradingMotion.SDKv2.Markets.Orders
+Imports TradingMotion.SDKv2.Markets.Indicators.Momentum
+Imports TradingMotion.SDKv2.Markets.Indicators.OverlapStudies
 
 Namespace AryaStrategy
 
@@ -25,8 +25,8 @@ Namespace AryaStrategy
         Dim trailingStopOrder As Order
         Dim profitOrder As Order
 
-        Dim acceleration As Decimal
-        Dim furthestClose As Decimal
+        Dim acceleration As Double
+        Dim furthestClose As Double
 
         Public Sub New(ByVal mainChart As Chart, ByVal secondaryCharts As List(Of Chart))
             MyBase.New(mainChart, secondaryCharts)
@@ -91,7 +91,7 @@ Namespace AryaStrategy
             parameters.Add(New InputParameter("Range Calculation Period", 10))
 
             ' Minimum Volatility allowed for placing entries
-            parameters.Add(New InputParameter("Minimum Range Filter", 0.002D))
+            parameters.Add(New InputParameter("Minimum Range Filter", 0.002))
 
             ' The previous N bars period ADX indicator will use
             parameters.Add(New InputParameter("ADX Period", 14))
@@ -99,14 +99,14 @@ Namespace AryaStrategy
             parameters.Add(New InputParameter("SMA Period", 78))
 
             ' Minimum ADX value for placing long entries
-            parameters.Add(New InputParameter("Min ADX Long Entry", 12D))
+            parameters.Add(New InputParameter("Min ADX Long Entry", 12.0))
             ' Minimum ADX value for placing short entries
-            parameters.Add(New InputParameter("Min ADX Short Entry", 12D))
+            parameters.Add(New InputParameter("Min ADX Short Entry", 12.0))
 
             ' The distance between the entry and the initial trailing stop price
             parameters.Add(New InputParameter("Trailing Stop Loss ticks distance", 24))
             ' The initial acceleration of the trailing stop
-            parameters.Add(New InputParameter("Trailing Stop acceleration", 0.2D))
+            parameters.Add(New InputParameter("Trailing Stop acceleration", 0.2))
 
             ' The distance between the entry and the profit target level
             parameters.Add(New InputParameter("Profit Target ticks distance", 77))
@@ -114,9 +114,9 @@ Namespace AryaStrategy
             ' The previous N bars period Stochastic indicator will use
             parameters.Add(New InputParameter("Stochastic Period", 68))
             ' Break level of Stochastic %D we consider a buy signal
-            parameters.Add(New InputParameter("Trend-following buy signal", 51D))
+            parameters.Add(New InputParameter("Trend-following buy signal", 51.0))
             ' Break level of Stochastic %D we consider a sell signal
-            parameters.Add(New InputParameter("Trend-following sell signal", 49D))
+            parameters.Add(New InputParameter("Trend-following sell signal", 49.0))
 
             Return parameters
 
@@ -151,11 +151,11 @@ Namespace AryaStrategy
         ''' </summary>
         Public Overrides Sub OnNewBar()
 
-            Dim buySignal As Decimal = Me.GetInputParameter("Trend-following buy signal")
-            Dim sellSignal As Decimal = Me.GetInputParameter("Trend-following sell signal")
+            Dim buySignal As Double = Me.GetInputParameter("Trend-following buy signal")
+            Dim sellSignal As Double = Me.GetInputParameter("Trend-following sell signal")
 
-            Dim stopMargin As Decimal = Me.GetInputParameter("Trailing Stop Loss ticks distance") * Me.GetMainChart().Symbol.TickSize
-            Dim profitMargin As Decimal = Me.GetInputParameter("Profit Target ticks distance") * Me.GetMainChart().Symbol.TickSize
+            Dim stopMargin As Double = Me.GetInputParameter("Trailing Stop Loss ticks distance") * Me.GetMainChart().Symbol.TickSize
+            Dim profitMargin As Double = Me.GetInputParameter("Profit Target ticks distance") * Me.GetMainChart().Symbol.TickSize
 
             Dim longTradingEnabled As Boolean = False
             Dim shortTradingEnabled As Boolean = False
@@ -333,7 +333,7 @@ Namespace AryaStrategy
 
         End Function
 
-        Private Function CalculateVolatilityRange() As Decimal
+        Private Function CalculateVolatilityRange() As Double
 
             ' Set current Range as Max(High) - Min(Low) of last "Range Calculation Period" bars
             Dim lookbackPeriod As Integer = Me.GetInputParameter("Range Calculation Period")
